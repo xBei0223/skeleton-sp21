@@ -114,6 +114,43 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        board.setViewingPerspective(side);
+
+        for(int col = 0; col < board.size(); col++) {
+
+            // 先判断这一列有没有空位，将空位补齐
+            for (int row = board.size() - 2; row >= 0; row--) {  // 遍历到倒数第二行即可
+                int temp_row = row;
+                while (board.tile(col, temp_row) != null && temp_row != board.size() - 1) {
+                    if(board.tile(col, temp_row + 1) == null) {
+                        board.move(col, temp_row + 1, board.tile(col, temp_row));
+                        changed = true;
+                    }
+                    temp_row++;
+                }
+            }
+
+            // 补齐空位之后，相同数字进行Merge
+            for (int row = board.size() - 1; row > 0; row--) {  // 遍历到倒数第二行即可
+                if(board.tile(col,row - 1) != null && board.tile(col, row).value() == board.tile(col,row - 1).value()){
+                    score += board.tile(col,row).value() * 2;   // 加分
+                    board.move(col,row - 1,board.tile(col,row));
+                    changed = true;
+                    row-- ; // 防止多次合并
+                }
+            }
+
+            // 合并完成后补齐空位
+            for (int row = board.size() - 2; row >= 0; row--) {  // 遍历到倒数第二行即可
+                int temp_row = row;
+                while (board.tile(col, temp_row) != null && temp_row != board.size() - 1) {
+                    if(board.tile(col, temp_row + 1) == null) {
+                        board.move(col, temp_row + 1, board.tile(col, temp_row));
+                    }temp_row++;
+                }
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,6 +175,13 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        for (int row = 0; row < b.size(); row++) {
+            for (int col = 0; col < b.size(); col++) {
+                if(b.tile(col,row) == null ){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +192,15 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        for (int row = 0; row < b.size(); row++) {
+            for (int col = 0; col < b.size(); col++) {
+                if(b.tile(col,row) != null ){
+                    if(b.tile(col,row).value() == MAX_PIECE ){
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +212,35 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        for (int row = 0; row < b.size(); row++) {
+            for (int col = 0; col < b.size(); col++) {
+                if(b.tile(col,row) == null ){
+                    return true;
+                }
+                if( col < b.size() - 1 && row < b.size() - 1 ){
+                    if(b.tile(col + 1,row) == null || b.tile(col,row + 1) == null ){
+                        return true;
+                    }
+                    if(b.tile(col,row).value() == b.tile(col + 1,row).value()  || b.tile(col ,row).value() == b.tile(col,row+1).value()) {
+                        return true;
+                    }
+                }
+                else if( col == b.size() - 1 && row == b.size() - 1 ){
+                        return false;
+                }
+                else if( col == b.size() - 1 ){
+                    if(b.tile(col,row).value() == b.tile(col,row+1).value()){
+                        return true;
+                    }
+                }
+                else if( row == b.size() - 1 ){
+                    if(b.tile(col,row).value() == b.tile(col+1,row).value()){
+                        return true;
+                    }
+                }
+                else return false;
+            }
+        }
         return false;
     }
 
